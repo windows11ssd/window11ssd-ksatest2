@@ -29,5 +29,8 @@
   "clearHistory": "Clear History",
   "confirmClearHistory": "Are you sure you want to clear all test history? This action cannot be undone.",
   "cancel": "Cancel",
-  "confirm": "Confirm"
+  "confirm": "Confirm",
+  "yourIpAddress": "Your IP Address",
+  "fetchingLocation": "Fetching info...",
+  "testEndpoint": "Test Endpoint"
 }

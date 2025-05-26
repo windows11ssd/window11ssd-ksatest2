@@ -1,11 +1,11 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableCaption } from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Trash2, Download, Upload, Zap, CalendarDays, FileText, Server } from 'lucide-react';
+import { Trash2, Download, Upload, Zap, CalendarDays, FileText, Server, MapPin } from 'lucide-react';
 import type { TestResult } from '@/lib/types';
 import { useTranslation } from '@/hooks/use-translation';
 import { format } from 'date-fns';
@@ -26,7 +26,7 @@ const TestHistoryTable: React.FC<TestHistoryTableProps> = ({ history, onClearHis
       const date = new Date(dateString);
       return format(date, 'PPpp', { locale: language === 'ar' ? arSA : enUS });
     } catch (error) {
-      return dateString; // fallback to original string if formatting fails
+      return dateString; 
     }
   };
 
@@ -43,7 +43,7 @@ const TestHistoryTable: React.FC<TestHistoryTableProps> = ({ history, onClearHis
           {translate('testHistory')}
         </CardTitle>
         <CardDescription>
-          {translate('noHistory').split('.')[0] + '.'} {/* Short description */}
+          {translate('noHistory').split('.')[0] + '.'}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -54,12 +54,13 @@ const TestHistoryTable: React.FC<TestHistoryTableProps> = ({ history, onClearHis
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="whitespace-nowrap"><CalendarDays className="inline h-4 w-4 mr-1"/>{translate('date')}</TableHead>
-                  <TableHead className="text-center whitespace-nowrap"><Download className="inline h-4 w-4 mr-1"/>{translate('downloadSpeed')} ({translate('mbps')})</TableHead>
-                  <TableHead className="text-center whitespace-nowrap"><Upload className="inline h-4 w-4 mr-1"/>{translate('uploadSpeed')} ({translate('mbps')})</TableHead>
-                  <TableHead className="text-center whitespace-nowrap"><Zap className="inline h-4 w-4 mr-1"/>{translate('ping')} ({translate('ms')})</TableHead>
-                  <TableHead className="text-center whitespace-nowrap"><FileText className="inline h-4 w-4 mr-1"/>{translate('fileSize')}</TableHead>
-                  <TableHead className="whitespace-nowrap"><Server className="inline h-4 w-4 mr-1"/>{translate('server')}</TableHead>
+                  <TableHead className="whitespace-nowrap"><CalendarDays className="inline h-4 w-4 mr-1 rtl:ml-1 rtl:mr-0"/>{translate('date')}</TableHead>
+                  <TableHead className="text-center whitespace-nowrap"><Download className="inline h-4 w-4 mr-1 rtl:ml-1 rtl:mr-0"/>{translate('downloadSpeed')} ({translate('mbps')})</TableHead>
+                  <TableHead className="text-center whitespace-nowrap"><Upload className="inline h-4 w-4 mr-1 rtl:ml-1 rtl:mr-0"/>{translate('uploadSpeed')} ({translate('mbps')})</TableHead>
+                  <TableHead className="text-center whitespace-nowrap"><Zap className="inline h-4 w-4 mr-1 rtl:ml-1 rtl:mr-0"/>{translate('ping')} ({translate('ms')})</TableHead>
+                  <TableHead className="text-center whitespace-nowrap"><FileText className="inline h-4 w-4 mr-1 rtl:ml-1 rtl:mr-0"/>{translate('fileSize')}</TableHead>
+                  <TableHead className="whitespace-nowrap"><Server className="inline h-4 w-4 mr-1 rtl:ml-1 rtl:mr-0"/>{translate('server')}</TableHead>
+                  <TableHead className="whitespace-nowrap"><MapPin className="inline h-4 w-4 mr-1 rtl:ml-1 rtl:mr-0"/>{translate('yourIpAddress')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -71,6 +72,7 @@ const TestHistoryTable: React.FC<TestHistoryTableProps> = ({ history, onClearHis
                     <TableCell className="text-center">{item.ping}</TableCell>
                     <TableCell className="text-center">{item.fileSize}</TableCell>
                     <TableCell className="whitespace-nowrap">{item.serverName} <span className="text-xs text-muted-foreground">({item.serverLocation})</span></TableCell>
+                    <TableCell className="whitespace-nowrap">{item.ipAddress || 'N/A'}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -83,7 +85,7 @@ const TestHistoryTable: React.FC<TestHistoryTableProps> = ({ history, onClearHis
            <AlertDialog open={isAlertDialogOpen} onOpenChange={setIsAlertDialogOpen} dir={dir}>
             <AlertDialogTrigger asChild>
               <Button variant="destructive" size="sm">
-                <Trash2 className={`w-4 h-4 ${dir === 'ar' ? 'ml-2' : 'mr-2'}`} />
+                <Trash2 className={`w-4 h-4 ${dir === 'rtl' ? 'ml-2' : 'mr-2'}`} />
                 {translate('clearHistory')}
               </Button>
             </AlertDialogTrigger>

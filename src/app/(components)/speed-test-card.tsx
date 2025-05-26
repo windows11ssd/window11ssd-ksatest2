@@ -6,13 +6,20 @@ import Gauge from './gauge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Download, Upload, Zap, Server as ServerIcon, Play, Pause, RotateCcw, BarChartHorizontalBig } from 'lucide-react';
+import { Download, Upload, Zap, Server as ServerIcon, Play, Pause, BarChartHorizontalBig, MapPin } from 'lucide-react';
 import { useTranslation } from '@/hooks/use-translation';
 import type { TestResult, FileSizeOption } from '@/lib/types';
 import { Progress } from '@/components/ui/progress';
 
 interface SpeedTestCardProps {
   onTestComplete: (result: TestResult) => void;
+}
+
+interface ClientInfo {
+  ip: string;
+  city: string;
+  country: string;
+  network: string; 
 }
 
 const fileSizes: FileSizeOption[] = ["1MB", "5MB", "10MB", "50MB", "100MB", "500MB", "1000MB"];
@@ -25,16 +32,53 @@ const SpeedTestCard: React.FC<SpeedTestCardProps> = ({ onTestComplete }) => {
   const [ping, setPing] = useState(0);
   const [selectedFileSize, setSelectedFileSize] = useState<FileSizeOption>("10MB");
   const [progress, setProgress] = useState(0);
-  const [currentTestPhase, setCurrentTestPhase] = useState<string>(""); // "ping", "download", "upload"
+  const [currentTestPhase, setCurrentTestPhase] = useState<string>(""); 
 
-  // Add direct fallbacks in case translation returns empty string
-  const serverNameFromTranslation = translate('defaultServerName');
-  const serverLocationFromTranslation = translate('defaultServerLocation');
+  const [clientInfo, setClientInfo] = useState<ClientInfo | null>(null);
+  const [isLoadingClientInfo, setIsLoadingClientInfo] = useState(true);
+  const [serverName, setServerName] = useState<string>(() => translate('defaultServerName'));
+  const [serverLocation, setServerLocation] = useState<string>(() => translate('defaultServerLocation'));
 
-  const serverInfo = {
-    name: serverNameFromTranslation || "Default Server Name", // Fallback
-    location: serverLocationFromTranslation || "Default Server Location", // Fallback
-  };
+  useEffect(() => {
+    const fetchClientInfo = async () => {
+      setIsLoadingClientInfo(true);
+      setClientInfo(null); // Reset client info before fetching
+      try {
+        const response = await fetch('https://ipapi.co/json/');
+        if (!response.ok) {
+          throw new Error('Failed to fetch IP info');
+        }
+        const data = await response.json();
+        const fetchedClientInfo: ClientInfo = {
+          ip: data.ip || 'N/A',
+          city: data.city || 'N/A',
+          country: data.country_name || 'N/A',
+          network: data.org || 'N/A', 
+        };
+        setClientInfo(fetchedClientInfo);
+      } catch (error) {
+        console.error("Error fetching client info:", error);
+        setClientInfo({ ip: 'N/A', city: 'N/A', country: 'N/A', network: 'N/A' }); // Set to N/A on error
+      } finally {
+        setIsLoadingClientInfo(false);
+      }
+    };
+
+    fetchClientInfo();
+  }, []); // Fetch only on mount
+
+  useEffect(() => {
+    // This effect updates serverName and serverLocation based on fetched clientInfo or language changes.
+    if (clientInfo && clientInfo.ip !== 'N/A' && clientInfo.city !== 'N/A' && clientInfo.country !== 'N/A') {
+      setServerName(translate('testEndpoint'));
+      setServerLocation(`${clientInfo.city}, ${clientInfo.country}`);
+    } else {
+      // Fallback if clientInfo is not available or fetch failed
+      setServerName(translate('defaultServerName'));
+      setServerLocation(translate('defaultServerLocation'));
+    }
+  }, [clientInfo, translate]);
+
 
   const resetMetrics = useCallback(() => {
     setDownloadSpeed(0);
@@ -45,24 +89,21 @@ const SpeedTestCard: React.FC<SpeedTestCardProps> = ({ onTestComplete }) => {
   }, []);
   
   useEffect(() => {
-    // Reset metrics if language changes
     resetMetrics();
-  }, [translate, resetMetrics]); // `translate` changes with language
+  }, [translate, resetMetrics]);
 
 
   const simulateTest = () => {
     setIsTesting(true);
     resetMetrics();
 
-    // Ping simulation
     setCurrentTestPhase(translate('ping'));
     setProgress(10);
     setTimeout(() => {
-      const simulatedPing = Math.floor(Math.random() * 100) + 5; // 5-105 ms
+      const simulatedPing = Math.floor(Math.random() * 100) + 5; 
       setPing(simulatedPing);
       setProgress(33);
 
-      // Download simulation
       setCurrentTestPhase(translate('downloadSpeed'));
       let currentDownload = 0;
       const downloadInterval = setInterval(() => {
@@ -74,7 +115,6 @@ const SpeedTestCard: React.FC<SpeedTestCardProps> = ({ onTestComplete }) => {
             clearInterval(downloadInterval);
             setProgress(66);
 
-            // Upload simulation
             setCurrentTestPhase(translate('uploadSpeed'));
             let currentUpload = 0;
             const uploadInterval = setInterval(() => {
@@ -98,11 +138,11 @@ const SpeedTestCard: React.FC<SpeedTestCardProps> = ({ onTestComplete }) => {
                         upload: finalUploadSpeed,
                         ping: simulatedPing,
                         fileSize: selectedFileSize,
-                        serverName: serverInfo.name, 
-                        serverLocation: serverInfo.location,
+                        serverName: serverName, 
+                        serverLocation: serverLocation,
+                        ipAddress: clientInfo?.ip || 'N/A',
                     };
                     onTestComplete(result);
-                    // Update gauge values directly after test completion for final display
                     setDownloadSpeed(finalDownloadSpeed);
                     setUploadSpeed(finalUploadSpeed);
                 }
@@ -121,6 +161,10 @@ const SpeedTestCard: React.FC<SpeedTestCardProps> = ({ onTestComplete }) => {
         simulateTest();
     }
   };
+
+  const displayServerName = isLoadingClientInfo && !clientInfo ? translate('fetchingLocation') : serverName;
+  const displayServerLocation = isLoadingClientInfo && !clientInfo ? '...' : serverLocation;
+  const displayIpAddress = isLoadingClientInfo && !clientInfo ? translate('fetchingLocation') : (clientInfo?.ip || 'N/A');
 
   return (
     <Card className="w-full max-w-3xl mx-auto shadow-xl">
@@ -148,33 +192,47 @@ const SpeedTestCard: React.FC<SpeedTestCardProps> = ({ onTestComplete }) => {
           </div>
         )}
 
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-muted/50 rounded-lg">
+        <div className="space-y-4 p-4 bg-muted/50 rounded-lg">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+            {/* Server Info */}
             <div className="flex items-center gap-2 text-sm">
-              <ServerIcon className="w-5 h-5 text-primary" />
+              <ServerIcon className="w-5 h-5 text-primary flex-shrink-0" />
               <div>
-                <p className="font-semibold">{serverInfo.name}</p>
-                <p className="text-xs text-muted-foreground">{serverInfo.location}</p>
+                <p className="font-semibold">{displayServerName}</p>
+                <p className="text-xs text-muted-foreground">{displayServerLocation}</p>
               </div>
             </div>
-            <div className="w-full sm:w-auto">
-                <Select
-                    dir={dir}
-                    value={selectedFileSize}
-                    onValueChange={(value) => setSelectedFileSize(value as FileSizeOption)}
-                    disabled={isTesting}
-                >
-                    <SelectTrigger className="w-full sm:w-[180px]" aria-label={translate('selectFileSize')}>
-                    <SelectValue placeholder={translate('selectFileSize')} />
-                    </SelectTrigger>
-                    <SelectContent>
-                    {fileSizes.map((size) => (
-                        <SelectItem key={size} value={size}>
-                        {size}
-                        </SelectItem>
-                    ))}
-                    </SelectContent>
-                </Select>
+
+            {/* IP Address Info */}
+            <div className="flex items-center gap-2 text-sm">
+              <MapPin className="w-5 h-5 text-primary flex-shrink-0" />
+              <div>
+                <p className="font-semibold">{translate('yourIpAddress')}</p>
+                <p className="text-xs text-muted-foreground">{displayIpAddress}</p>
+              </div>
             </div>
+          </div>
+
+          {/* File Size Selector */}
+          <div className="w-full flex sm:justify-end">
+              <Select
+                  dir={dir}
+                  value={selectedFileSize}
+                  onValueChange={(value) => setSelectedFileSize(value as FileSizeOption)}
+                  disabled={isTesting}
+              >
+                  <SelectTrigger className="w-full sm:w-[180px]" aria-label={translate('selectFileSize')}>
+                  <SelectValue placeholder={translate('selectFileSize')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                  {fileSizes.map((size) => (
+                      <SelectItem key={size} value={size}>
+                      {size}
+                      </SelectItem>
+                  ))}
+                  </SelectContent>
+              </Select>
+          </div>
         </div>
       </CardContent>
       <CardFooter className="flex justify-center">
@@ -202,4 +260,3 @@ const SpeedTestCard: React.FC<SpeedTestCardProps> = ({ onTestComplete }) => {
 };
 
 export default SpeedTestCard;
-

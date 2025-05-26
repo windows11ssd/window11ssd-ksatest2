@@ -29,5 +29,8 @@
   "clearHistory": "مسح السجل",
   "confirmClearHistory": "هل أنت متأكد أنك تريد مسح كل سجل الاختبارات؟ لا يمكن التراجع عن هذا الإجراء.",
   "cancel": "إلغاء",
-  "confirm": "تأكيد"
+  "confirm": "تأكيد",
+  "yourIpAddress": "عنوان IP الخاص بك",
+  "fetchingLocation": "جاري جلب المعلومات...",
+  "testEndpoint": "نقطة اختبار الاتصال"
 }

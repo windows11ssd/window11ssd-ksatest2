@@ -9,6 +9,7 @@ export interface TestResult {
   fileSize: string; // e.g., "10MB"
   serverName: string;
   serverLocation: string;
+  ipAddress?: string; // Added user's IP address
 }
 
 export type FileSizeOption = "1MB" | "5MB" | "10MB" | "50MB" | "100MB" | "500MB" | "1000MB";
