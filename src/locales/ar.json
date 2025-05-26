@@ -1,3 +1,4 @@
+
 {
   "appName": "كي إس إيه تست",
   "tagline": "قس سرعة الإنترنت لديك بدقة",
@@ -32,5 +33,9 @@
   "confirm": "تأكيد",
   "yourIpAddress": "عنوان IP الخاص بك",
   "fetchingLocation": "جاري جلب المعلومات...",
-  "testEndpoint": "نقطة اختبار الاتصال"
+  "testEndpoint": "نقطة اختبار الاتصال",
+  "networkProvider": "مزود الشبكة"
 }
+
+
+    

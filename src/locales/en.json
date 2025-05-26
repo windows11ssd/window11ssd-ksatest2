@@ -1,3 +1,4 @@
+
 {
   "appName": "KsaTest",
   "tagline": "Measure Your Internet Speed Accurately",
@@ -32,5 +33,9 @@
   "confirm": "Confirm",
   "yourIpAddress": "Your IP Address",
   "fetchingLocation": "Fetching info...",
-  "testEndpoint": "Test Endpoint"
+  "testEndpoint": "Test Endpoint",
+  "networkProvider": "Network Provider"
 }
+
+
+    

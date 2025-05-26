@@ -6,7 +6,7 @@ import Gauge from './gauge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Download, Upload, Zap, Server as ServerIcon, Play, Pause, BarChartHorizontalBig, MapPin } from 'lucide-react';
+import { Download, Upload, Zap, Server as ServerIcon, Play, Pause, BarChartHorizontalBig, MapPin, Network } from 'lucide-react';
 import { useTranslation } from '@/hooks/use-translation';
 import type { TestResult, FileSizeOption } from '@/lib/types';
 import { Progress } from '@/components/ui/progress';
@@ -65,7 +65,7 @@ const SpeedTestCard: React.FC<SpeedTestCardProps> = ({ onTestComplete }) => {
     };
 
     fetchClientInfo();
-  }, []); // Fetch only on mount
+  }, []); 
 
   useEffect(() => {
     // This effect updates serverName and serverLocation based on fetched clientInfo or language changes.
@@ -162,9 +162,11 @@ const SpeedTestCard: React.FC<SpeedTestCardProps> = ({ onTestComplete }) => {
     }
   };
 
-  const displayServerName = isLoadingClientInfo && !clientInfo ? translate('fetchingLocation') : serverName;
-  const displayServerLocation = isLoadingClientInfo && !clientInfo ? '...' : serverLocation;
+  const displayServerName = isLoadingClientInfo && !clientInfo ? translate('fetchingLocation') : (serverName || translate('defaultServerName'));
+  const displayServerLocation = isLoadingClientInfo && !clientInfo ? '...' : (serverLocation || translate('defaultServerLocation'));
   const displayIpAddress = isLoadingClientInfo && !clientInfo ? translate('fetchingLocation') : (clientInfo?.ip || 'N/A');
+  const displayNetworkProvider = isLoadingClientInfo && !clientInfo ? translate('fetchingLocation') : (clientInfo?.network || 'N/A');
+
 
   return (
     <Card className="w-full max-w-3xl mx-auto shadow-xl">
@@ -211,10 +213,19 @@ const SpeedTestCard: React.FC<SpeedTestCardProps> = ({ onTestComplete }) => {
                 <p className="text-xs text-muted-foreground">{displayIpAddress}</p>
               </div>
             </div>
+
+            {/* Network Provider Info */}
+            <div className="flex items-center gap-2 text-sm">
+              <Network className="w-5 h-5 text-primary flex-shrink-0" />
+              <div>
+                <p className="font-semibold">{translate('networkProvider')}</p>
+                <p className="text-xs text-muted-foreground">{displayNetworkProvider}</p>
+              </div>
+            </div>
           </div>
 
           {/* File Size Selector */}
-          <div className="w-full flex sm:justify-end">
+          <div className="w-full flex sm:justify-end mt-4 sm:mt-0">
               <Select
                   dir={dir}
                   value={selectedFileSize}
@@ -260,3 +271,6 @@ const SpeedTestCard: React.FC<SpeedTestCardProps> = ({ onTestComplete }) => {
 };
 
 export default SpeedTestCard;
+
+
+    
