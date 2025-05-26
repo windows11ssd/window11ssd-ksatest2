@@ -23,8 +23,8 @@ export default function RootLayout({
     // LanguageProvider now wraps the html element directly.
     // The lang and dir attributes on <html> will be initially set here (defaults, e.g., 'ar', 'rtl')
     // and then updated by LanguageProvider's useEffect after hydration if necessary.
-    <LanguageProvider> 
-      <html lang="ar" dir="rtl" suppressHydrationWarning> {/* Default to 'ar' as per useLocalStorage initial value */}
+    <LanguageProvider>
+      <html lang="ar" dir="rtl" suppressHydrationWarning>{/* Default to 'ar' as per useLocalStorage initial value */}
         <body className={`${GeistSans.variable} font-sans antialiased`}>
           <ThemeProvider
             attribute="class"
