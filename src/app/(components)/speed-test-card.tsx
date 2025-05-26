@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -26,9 +27,13 @@ const SpeedTestCard: React.FC<SpeedTestCardProps> = ({ onTestComplete }) => {
   const [progress, setProgress] = useState(0);
   const [currentTestPhase, setCurrentTestPhase] = useState<string>(""); // "ping", "download", "upload"
 
+  // Add direct fallbacks in case translation returns empty string
+  const serverNameFromTranslation = translate('defaultServerName');
+  const serverLocationFromTranslation = translate('defaultServerLocation');
+
   const serverInfo = {
-    name: translate('defaultServerName'),
-    location: translate('defaultServerLocation'),
+    name: serverNameFromTranslation || "Default Server Name", // Fallback
+    location: serverLocationFromTranslation || "Default Server Location", // Fallback
   };
 
   const resetMetrics = useCallback(() => {
@@ -40,9 +45,9 @@ const SpeedTestCard: React.FC<SpeedTestCardProps> = ({ onTestComplete }) => {
   }, []);
   
   useEffect(() => {
-    // Reset metrics if language changes to reflect new server name potentially
+    // Reset metrics if language changes
     resetMetrics();
-  }, [translate, resetMetrics]);
+  }, [translate, resetMetrics]); // `translate` changes with language
 
 
   const simulateTest = () => {
@@ -61,11 +66,11 @@ const SpeedTestCard: React.FC<SpeedTestCardProps> = ({ onTestComplete }) => {
       setCurrentTestPhase(translate('downloadSpeed'));
       let currentDownload = 0;
       const downloadInterval = setInterval(() => {
-        currentDownload += Math.random() * 20; // Simulate increasing speed
-        setDownloadSpeed(Math.min(currentDownload, Math.random() * 500 + 50)); // Cap at a random max
+        currentDownload += Math.random() * 20; 
+        setDownloadSpeed(Math.min(currentDownload, Math.random() * 500 + 50)); 
         setProgress(p => Math.min(p + 5, 66));
-        if (currentDownload >= (Math.random() * 400 + 50) || progress >= 66) { // Some condition to end download phase
-            setDownloadSpeed(Math.random() * 500 + 50); // Final download speed
+        if (currentDownload >= (Math.random() * 400 + 50) || progress >= 66) { 
+            setDownloadSpeed(Math.random() * 500 + 50); 
             clearInterval(downloadInterval);
             setProgress(66);
 
@@ -74,27 +79,32 @@ const SpeedTestCard: React.FC<SpeedTestCardProps> = ({ onTestComplete }) => {
             let currentUpload = 0;
             const uploadInterval = setInterval(() => {
                 currentUpload += Math.random() * 15;
-                setUploadSpeed(Math.min(currentUpload, Math.random() * 300 + 30)); // Cap at a random max
+                setUploadSpeed(Math.min(currentUpload, Math.random() * 300 + 30)); 
                 setProgress(p => Math.min(p + 5, 100));
                  if (currentUpload >= (Math.random() * 250 + 30) || progress >= 99) {
-                    setUploadSpeed(Math.random() * 300 + 30); // Final upload speed
+                    setUploadSpeed(Math.random() * 300 + 30); 
                     clearInterval(uploadInterval);
                     setProgress(100);
                     
-                    // Test complete
                     setIsTesting(false);
                     setCurrentTestPhase(translate('results'));
+                    const finalDownloadSpeed = parseFloat((Math.random() * 500 + 50).toFixed(2));
+                    const finalUploadSpeed = parseFloat((Math.random() * 300 + 30).toFixed(2));
+
                     const result: TestResult = {
                         id: new Date().toISOString() + Math.random().toString(36).substring(2, 15),
                         date: new Date().toISOString(),
-                        download: parseFloat(downloadSpeed.toFixed(2)),
-                        upload: parseFloat(uploadSpeed.toFixed(2)),
+                        download: finalDownloadSpeed,
+                        upload: finalUploadSpeed,
                         ping: simulatedPing,
                         fileSize: selectedFileSize,
-                        serverName: serverInfo.name,
+                        serverName: serverInfo.name, 
                         serverLocation: serverInfo.location,
                     };
                     onTestComplete(result);
+                    // Update gauge values directly after test completion for final display
+                    setDownloadSpeed(finalDownloadSpeed);
+                    setUploadSpeed(finalUploadSpeed);
                 }
             }, 200);
         }
@@ -104,10 +114,9 @@ const SpeedTestCard: React.FC<SpeedTestCardProps> = ({ onTestComplete }) => {
 
   const handleStartTest = () => {
     if (isTesting) {
-        // Logic to stop test (not fully implemented for simulation)
         setIsTesting(false);
         resetMetrics();
-        setCurrentTestPhase(translate('testHistory')); // Or some "stopped" state
+        setCurrentTestPhase(translate('testHistory')); 
     } else {
         simulateTest();
     }
@@ -193,3 +202,4 @@ const SpeedTestCard: React.FC<SpeedTestCardProps> = ({ onTestComplete }) => {
 };
 
 export default SpeedTestCard;
+
