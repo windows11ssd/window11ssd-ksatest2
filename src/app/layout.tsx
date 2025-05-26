@@ -10,8 +10,8 @@ import { Toaster } from '@/components/ui/toaster';
 // The variable property will be something like '--font-geist-sans'
 
 export const metadata: Metadata = {
-  title: 'NetGauge',
-  description: 'Test your internet speed with NetGauge.',
+  title: 'KsaTest',
+  description: 'Test your internet speed with KsaTest.',
 };
 
 export default function RootLayout({
