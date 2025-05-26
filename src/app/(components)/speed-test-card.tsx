@@ -27,8 +27,8 @@ const SpeedTestCard: React.FC<SpeedTestCardProps> = ({ onTestComplete }) => {
   const [currentTestPhase, setCurrentTestPhase] = useState<string>(""); // "ping", "download", "upload"
 
   const serverInfo = {
-    name: translate('mockServerName'),
-    location: translate('mockServerLocation'),
+    name: translate('defaultServerName'),
+    location: translate('defaultServerLocation'),
   };
 
   const resetMetrics = useCallback(() => {
