@@ -18,6 +18,11 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  // Recommended for i18n routing, but we handle language via context for this app
+  // i18n: {
+  //   locales: ['en', 'ar'],
+  //   defaultLocale: 'ar',
+  // },
 };
 
 export default nextConfig;

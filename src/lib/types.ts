@@ -1,0 +1,14 @@
+export type Language = 'en' | 'ar';
+
+export interface TestResult {
+  id: string;
+  date: string; // ISO string format
+  download: number; // Mbps
+  upload: number; // Mbps
+  ping: number; // ms
+  fileSize: string; // e.g., "10MB"
+  serverName: string;
+  serverLocation: string;
+}
+
+export type FileSizeOption = "1MB" | "5MB" | "10MB" | "50MB" | "100MB" | "500MB" | "1000MB";
