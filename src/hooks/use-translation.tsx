@@ -22,7 +22,7 @@ const messages: Record<Language, Messages> = {
   ar: arMessages,
 };
 
-export const LanguageProvider = ({ children }: { children: (lang: Language, dir: 'ltr' | 'rtl') => ReactNode }) => {
+export const LanguageProvider = ({ children }: { children: ReactNode }) => { // Changed children prop type
   const [language, setLanguageState] = useLocalStorage<Language>('app-language', 'ar'); // Default to Arabic
   const [isMounted, setIsMounted] = useState(false);
 
@@ -32,10 +32,8 @@ export const LanguageProvider = ({ children }: { children: (lang: Language, dir:
 
   const setLanguage = (lang: Language) => {
     setLanguageState(lang);
-    if (typeof document !== 'undefined') {
-        document.documentElement.lang = lang;
-        document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
-    }
+    // The useEffect below will handle updating document.documentElement attributes
+    // when `language` state (from useLocalStorage) changes.
   };
   
   useEffect(() => {
@@ -58,15 +56,11 @@ export const LanguageProvider = ({ children }: { children: (lang: Language, dir:
 
   const dir = language === 'ar' ? 'rtl' : 'ltr';
 
-  if (!isMounted) {
-    // Render nothing or a fallback loader on the server/during initial mount
-    // to prevent hydration mismatch for lang and dir attributes
-    return null; 
-  }
-
+  // The provider should always render. Client-side effects depending on `isMounted`
+  // are handled within their respective useEffects.
   return (
     <LanguageContext.Provider value={{ language, setLanguage, translate, dir }}>
-      {children(language, dir)}
+      {children} {/* Render children directly */}
     </LanguageContext.Provider>
   );
 };
