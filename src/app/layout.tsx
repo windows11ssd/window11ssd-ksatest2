@@ -1,11 +1,11 @@
 import type { Metadata } from 'next';
-import { GeistSans } from 'next/font/google'; // Corrected import
+import { GeistSans } from 'geist/font/sans'; // Corrected import from geist
 import './globals.css';
 import { ThemeProvider } from '@/components/theme-provider';
 import { LanguageProvider } from '@/hooks/use-translation';
 import { Toaster } from '@/components/ui/toaster';
 
-const geistSans = GeistSans({ // Corrected usage
+const geistSans = GeistSans({
   variable: '--font-geist-sans',
   subsets: ['latin'],
   display: 'swap',
