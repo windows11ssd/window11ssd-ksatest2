@@ -46,15 +46,15 @@ const FrequencyBandsTable: React.FC = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[50%]">{translate('frequencyColumn')}</TableHead>
-                    <TableHead>{translate('bandColumn')}</TableHead>
+                    <TableHead className="w-[50%] text-start">{translate('frequencyColumn')}</TableHead>
+                    <TableHead className="text-start">{translate('bandColumn')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {fddBands.map((item) => (
                     <TableRow key={`fdd-${item.band}`}>
-                      <TableCell className="font-medium">{item.frequency}</TableCell>
-                      <TableCell>{item.band}</TableCell>
+                      <TableCell className="font-medium text-start">{item.frequency}</TableCell>
+                      <TableCell className="text-start">{item.band}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -68,15 +68,15 @@ const FrequencyBandsTable: React.FC = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[50%]">{translate('frequencyColumn')}</TableHead>
-                    <TableHead>{translate('bandColumn')}</TableHead>
+                    <TableHead className="w-[50%] text-start">{translate('frequencyColumn')}</TableHead>
+                    <TableHead className="text-start">{translate('bandColumn')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {tddBands.map((item) => (
                     <TableRow key={`tdd-${item.band}`}>
-                      <TableCell className="font-medium">{item.frequency}</TableCell>
-                      <TableCell>{item.band}</TableCell>
+                      <TableCell className="font-medium text-start">{item.frequency}</TableCell>
+                      <TableCell className="text-start">{item.band}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
