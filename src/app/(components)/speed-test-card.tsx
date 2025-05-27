@@ -10,6 +10,7 @@ import { Download, Upload, Zap, Server as ServerIcon, Play, Pause, BarChartHoriz
 import { useTranslation } from '@/hooks/use-translation';
 import type { TestResult, FileSizeOption } from '@/lib/types';
 import { Progress } from '@/components/ui/progress';
+import { useToast } from '@/hooks/use-toast';
 
 interface SpeedTestCardProps {
   onTestComplete: (result: TestResult) => void;
@@ -22,15 +23,19 @@ interface ClientInfo {
   network: string;
 }
 
-const fileSizes: FileSizeOption[] = ["1MB", "5MB", "10MB", "50MB", "100MB", "500MB", "1000MB"];
+// Updated file sizes, capping at 100MB for real download
+const fileSizes: FileSizeOption[] = ["1MB", "5MB", "10MB", "50MB", "100MB"];
+const BASE_DOWNLOAD_URL = 'https://speed.cloudflare.com/__down?bytes=';
 
-const parseFileSizeToMB = (fileSize: FileSizeOption): number => {
-  const match = fileSize.match(/^(\d+)/);
-  return match ? parseInt(match[1], 10) : 10; // Default to 10MB if parsing fails or for unexpected format
+const parseFileSizeToBytes = (fileSize: FileSizeOption): number => {
+  const sizePart = parseInt(fileSize.replace("MB", ""), 10);
+  if (isNaN(sizePart)) return 10000000; // Default to 10MB in bytes (10 * 1000 * 1000)
+  return sizePart * 1000 * 1000; // Approximation: 1MB = 1,000,000 Bytes
 };
 
 const SpeedTestCard: React.FC<SpeedTestCardProps> = ({ onTestComplete }) => {
   const { translate, dir } = useTranslation();
+  const { toast } = useToast();
   const [isTesting, setIsTesting] = useState(false);
   const [downloadSpeed, setDownloadSpeed] = useState(0);
   const [uploadSpeed, setUploadSpeed] = useState(0);
@@ -43,10 +48,8 @@ const SpeedTestCard: React.FC<SpeedTestCardProps> = ({ onTestComplete }) => {
   const [isLoadingClientInfo, setIsLoadingClientInfo] = useState(true);
   const [serverName, setServerName] = useState<string>(() => translate('defaultServerName'));
   const [serverLocation, setServerLocation] = useState<string>(() => translate('defaultServerLocation'));
-
-  // Abort controller for stopping ongoing fetch/simulation
+  
   const [abortController, setAbortController] = useState<AbortController | null>(null);
-
 
   useEffect(() => {
     const fetchClientInfo = async () => {
@@ -72,7 +75,6 @@ const SpeedTestCard: React.FC<SpeedTestCardProps> = ({ onTestComplete }) => {
         setIsLoadingClientInfo(false);
       }
     };
-
     fetchClientInfo();
   }, []);
 
@@ -86,125 +88,153 @@ const SpeedTestCard: React.FC<SpeedTestCardProps> = ({ onTestComplete }) => {
     }
   }, [clientInfo, translate]);
 
+  const resetTestState = useCallback(() => {
+    setIsTesting(false);
+    setDownloadSpeed(0);
+    setUploadSpeed(0);
+    setPing(0);
+    setProgress(0);
+    setCurrentTestPhase(translate('testHistory')); // Or a "Test Cancelled" message
+    if (abortController) {
+        abortController.abort();
+    }
+    setAbortController(null);
+  }, [translate, abortController]);
 
-  const resetMetrics = useCallback(() => {
+  useEffect(() => {
+    // Reset metrics when language changes to update labels correctly
     setDownloadSpeed(0);
     setUploadSpeed(0);
     setPing(0);
     setProgress(0);
     setCurrentTestPhase("");
-  }, []);
-
-  useEffect(() => {
-    resetMetrics();
-  }, [translate, resetMetrics]);
+  }, [translate]);
 
 
-  const simulateTest = () => {
+  const runSpeedTest = async () => {
     const controller = new AbortController();
     setAbortController(controller);
     setIsTesting(true);
-    resetMetrics();
+    setDownloadSpeed(0);
+    setUploadSpeed(0);
+    setPing(0);
+    setProgress(0);
+    setCurrentTestPhase("");
 
-    const fileSizeMB = parseFileSizeToMB(selectedFileSize);
-    // Base "amount of data" to simulate transferring for a 10MB file.
-    // These values are arbitrary and just for simulation scaling.
-    const baseDownloadAmount = 150; 
-    const baseUploadAmount = 100;
+    let finalDownloadSpeed = 0;
+    let finalUploadSpeed = 0;
+    let finalPing = 0;
 
-    const targetSimulatedDownloadAmount = (fileSizeMB / 10) * baseDownloadAmount * (Math.random() * 0.4 + 0.8); // Add some randomness
-    const targetSimulatedUploadAmount = (fileSizeMB / 10) * baseUploadAmount * (Math.random() * 0.4 + 0.8);
+    try {
+      // 1. Ping (Simulated)
+      setCurrentTestPhase(translate('ping'));
+      setProgress(10); // Initial progress for ping
+      await new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 300)); // Simulate ping delay
+      if (controller.signal.aborted) { resetTestState(); return; }
+      finalPing = Math.floor(Math.random() * 100) + 5;
+      setPing(finalPing);
+      setProgress(15); // Progress after ping: 15%
 
-
-    setCurrentTestPhase(translate('ping'));
-    setProgress(10);
-    const pingTimeout = setTimeout(() => {
-      if (controller.signal.aborted) return;
-      const simulatedPing = Math.floor(Math.random() * 100) + 5;
-      setPing(simulatedPing);
-      setProgress(33);
-
+      // 2. Download Test (Real)
       setCurrentTestPhase(translate('downloadSpeed'));
-      let currentSimulatedDownloaded = 0;
-      const downloadInterval = setInterval(() => {
+      const downloadSizeInBytes = parseFileSizeToBytes(selectedFileSize);
+      const downloadUrl = `${BASE_DOWNLOAD_URL}${downloadSizeInBytes}`;
+      let downloadedBytes = 0;
+      const downloadStartTime = Date.now();
+
+      const response = await fetch(downloadUrl, { signal: controller.signal, cache: 'no-store' });
+      if (!response.ok) throw new Error(`Download failed: ${response.status} ${response.statusText}`);
+      if (!response.body) throw new Error('Response body is null for download');
+      
+      const reader = response.body.getReader();
+      // eslint-disable-next-line no-constant-condition
+      while (true) {
         if (controller.signal.aborted) {
-          clearInterval(downloadInterval);
-          return;
+          try { await reader.cancel('Test aborted by user'); } catch {}
+          resetTestState(); return;
         }
-        // Simulate data chunk being downloaded
-        currentSimulatedDownloaded += Math.random() * 5 + (fileSizeMB / 50); // Increment chunk size slightly with file size
-        setDownloadSpeed(Math.min(Math.random() * 500 + 50, 550)); // Random current speed, capped
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        downloadedBytes += value.length;
+        const elapsedTimeSeconds = (Date.now() - downloadStartTime) / 1000;
         
-        const downloadProgress = Math.min((currentSimulatedDownloaded / targetSimulatedDownloadAmount) * 33, 33);
-        setProgress(33 + downloadProgress);
-
-        if (currentSimulatedDownloaded >= targetSimulatedDownloadAmount || progress >= 66) {
-          setDownloadSpeed(Math.random() * 500 + 50); // Final random speed
-          clearInterval(downloadInterval);
-          setProgress(66);
-
-          setCurrentTestPhase(translate('uploadSpeed'));
-          let currentSimulatedUploaded = 0;
-          const uploadInterval = setInterval(() => {
-            if (controller.signal.aborted) {
-              clearInterval(uploadInterval);
-              return;
-            }
-            currentSimulatedUploaded += Math.random() * 4 + (fileSizeMB / 60);
-            setUploadSpeed(Math.min(Math.random() * 300 + 30, 350));
-            
-            const uploadProgress = Math.min((currentSimulatedUploaded / targetSimulatedUploadAmount) * 34, 34);
-            setProgress(66 + uploadProgress);
-
-            if (currentSimulatedUploaded >= targetSimulatedUploadAmount || progress >= 99) {
-              setUploadSpeed(Math.random() * 300 + 30);
-              clearInterval(uploadInterval);
-              setProgress(100);
-
-              setIsTesting(false);
-              setCurrentTestPhase(translate('results'));
-              const finalDownloadSpeed = parseFloat((Math.random() * 500 + 50).toFixed(2));
-              const finalUploadSpeed = parseFloat((Math.random() * 300 + 30).toFixed(2));
-
-              const result: TestResult = {
-                id: new Date().toISOString() + Math.random().toString(36).substring(2, 15),
-                date: new Date().toISOString(),
-                download: finalDownloadSpeed,
-                upload: finalUploadSpeed,
-                ping: simulatedPing,
-                fileSize: selectedFileSize,
-                serverName: serverName || translate('defaultServerName'),
-                serverLocation: serverLocation || translate('defaultServerLocation'),
-                ipAddress: clientInfo?.ip || 'N/A',
-              };
-              onTestComplete(result);
-              setDownloadSpeed(finalDownloadSpeed);
-              setUploadSpeed(finalUploadSpeed);
-              setAbortController(null);
-            }
-          }, 200);
+        if (elapsedTimeSeconds > 0) {
+            const currentSpeedMbps = (downloadedBytes * 8) / (elapsedTimeSeconds * 1000000);
+            setDownloadSpeed(currentSpeedMbps); // Update gauge in real-time
         }
-      }, 200);
-    }, 1000);
+        // Progress for download phase (from 15% to 70%, so 55% range)
+        const downloadProgressPercentage = (downloadedBytes / downloadSizeInBytes) * 100;
+        setProgress(15 + Math.min((downloadProgressPercentage / 100) * 55, 55));
+      }
+      if (response.body.locked) {
+          try { reader.releaseLock(); } catch {}
+      }
+      
+      const downloadEndTime = Date.now();
+      const totalDownloadTimeSeconds = (downloadEndTime - downloadStartTime) / 1000;
+      finalDownloadSpeed = totalDownloadTimeSeconds > 0
+          ? (downloadedBytes * 8) / (totalDownloadTimeSeconds * 1000000)
+          : 0;
+      setDownloadSpeed(parseFloat(finalDownloadSpeed.toFixed(2)));
+      setProgress(70); // Progress after download: 70%
 
-    controller.signal.addEventListener('abort', () => {
-        clearTimeout(pingTimeout);
-        // @ts-ignore
-        clearInterval(downloadInterval);
-        // @ts-ignore
-        clearInterval(uploadInterval);
-        resetMetrics();
-        setIsTesting(false);
-        setCurrentTestPhase(translate('testHistory')); // Or some "test cancelled" message
-        setAbortController(null);
-    });
+      // 3. Upload Test (Simulated)
+      setCurrentTestPhase(translate('uploadSpeed'));
+      // Simulate upload takes some time based on file size (roughly)
+      const uploadSimulationDuration = 1000 + (downloadSizeInBytes / 1000000) * 100 + Math.random() * 500; // base + perMB + random
+      const uploadIntervalTime = 150;
+      const numUploadIntervals = Math.max(1, Math.round(uploadSimulationDuration / uploadIntervalTime));
+      let simulatedUploadedProportion = 0;
+
+      for (let i = 0; i < numUploadIntervals; i++) {
+          if (controller.signal.aborted) { resetTestState(); return; }
+          await new Promise(resolve => setTimeout(resolve, uploadIntervalTime));
+          simulatedUploadedProportion = (i + 1) / numUploadIntervals;
+          // Update gauge with some random fluctuation
+          setUploadSpeed(Math.random() * (finalDownloadSpeed / 2 + 50) + 10); // upload often slower
+          // Progress for upload phase (from 70% to 100%, so 30% range)
+          setProgress(70 + Math.min(simulatedUploadedProportion * 30, 30));
+      }
+      finalUploadSpeed = parseFloat((Math.random() * (finalDownloadSpeed / 1.5 + 20) + 5).toFixed(2)); // Final simulated upload speed
+      setUploadSpeed(finalUploadSpeed);
+      setProgress(100); // Progress after upload: 100%
+
+      // Test Complete
+      setCurrentTestPhase(translate('results'));
+      const result: TestResult = {
+        id: new Date().toISOString() + Math.random().toString(36).substring(2, 15),
+        date: new Date().toISOString(),
+        download: parseFloat(finalDownloadSpeed.toFixed(2)),
+        upload: parseFloat(finalUploadSpeed.toFixed(2)),
+        ping: finalPing,
+        fileSize: selectedFileSize,
+        serverName: serverName || translate('defaultServerName'),
+        serverLocation: serverLocation || translate('defaultServerLocation'),
+        ipAddress: clientInfo?.ip || 'N/A',
+      };
+      onTestComplete(result);
+
+    } catch (error: any) {
+      if (controller.signal.aborted || error.name === 'AbortError') {
+        console.log("Test explicitly aborted.");
+      } else {
+        console.error("Speed test error:", error);
+        toast({ title: translate('appName'), description: `Test failed: ${error.message}`, variant: "destructive" });
+      }
+      resetTestState();
+      return;
+    } finally {
+      setIsTesting(false);
+      setAbortController(null);
+    }
   };
 
   const handleStartTest = () => {
     if (isTesting && abortController) {
-        abortController.abort();
+        abortController.abort(); // This will trigger the cleanup in runSpeedTest
     } else {
-        simulateTest();
+        runSpeedTest();
     }
   };
 
@@ -212,7 +242,6 @@ const SpeedTestCard: React.FC<SpeedTestCardProps> = ({ onTestComplete }) => {
   const displayServerLocation = isLoadingClientInfo && !clientInfo ? '...' : (serverLocation || translate('defaultServerLocation'));
   const displayIpAddress = isLoadingClientInfo && !clientInfo ? translate('fetchingLocation') : (clientInfo?.ip || 'N/A');
   const displayNetworkProvider = isLoadingClientInfo && !clientInfo ? translate('fetchingLocation') : (clientInfo?.network || 'N/A');
-
 
   return (
     <Card className="w-full max-w-3xl mx-auto shadow-xl">
@@ -242,7 +271,6 @@ const SpeedTestCard: React.FC<SpeedTestCardProps> = ({ onTestComplete }) => {
 
         <div className="space-y-4 p-4 bg-muted/50 rounded-lg">
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-            {/* Server Info */}
             <div className="flex items-center gap-2 text-sm">
               <ServerIcon className="w-5 h-5 text-primary flex-shrink-0" />
               <div>
@@ -250,8 +278,6 @@ const SpeedTestCard: React.FC<SpeedTestCardProps> = ({ onTestComplete }) => {
                 <p className="text-xs text-muted-foreground">{displayServerLocation}</p>
               </div>
             </div>
-
-            {/* IP Address Info */}
             <div className="flex items-center gap-2 text-sm">
               <MapPin className="w-5 h-5 text-primary flex-shrink-0" />
               <div>
@@ -259,8 +285,6 @@ const SpeedTestCard: React.FC<SpeedTestCardProps> = ({ onTestComplete }) => {
                 <p className="text-xs text-muted-foreground">{displayIpAddress}</p>
               </div>
             </div>
-
-            {/* Network Provider Info */}
             <div className="flex items-center gap-2 text-sm">
               <Network className="w-5 h-5 text-primary flex-shrink-0" />
               <div>
@@ -270,7 +294,6 @@ const SpeedTestCard: React.FC<SpeedTestCardProps> = ({ onTestComplete }) => {
             </div>
           </div>
 
-          {/* File Size Selector */}
           <div className="w-full flex sm:justify-end mt-4 sm:mt-0">
               <Select
                   dir={dir}
@@ -317,5 +340,3 @@ const SpeedTestCard: React.FC<SpeedTestCardProps> = ({ onTestComplete }) => {
 };
 
 export default SpeedTestCard;
-
-    
