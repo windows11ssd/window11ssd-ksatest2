@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -5,10 +6,11 @@ import Header from './(components)/header';
 import Footer from './(components)/footer';
 import SpeedTestCard from './(components)/speed-test-card';
 import TestHistoryTable from './(components)/test-history-table';
+import NetworkingTermsExplainer from './(components)/networking-terms-explainer'; // Added import
 import type { TestResult } from '@/lib/types';
 import useLocalStorage from '@/hooks/use-local-storage';
-import { useToast } from '@/hooks/use-toast'; // Correct path if using ShadCN's useToast
-import { useTranslation } from '@/hooks/use-translation'; // Ensure this path is correct
+import { useToast } from '@/hooks/use-toast'; 
+import { useTranslation } from '@/hooks/use-translation'; 
 
 export default function HomePage() {
   const [testHistory, setTestHistory] = useLocalStorage<TestResult[]>('netgauge-history', []);
@@ -32,29 +34,27 @@ export default function HomePage() {
     setTestHistory([]);
     toast({
       title: translate('testHistory'),
-      description: translate('clearHistory') + " " + translate('results') // Example: "Test History Cleared"
+      description: translate('clearHistory') + " " + translate('results') 
     });
   };
 
   if (!isClient) {
-    // Render a loading state or null on the server to avoid hydration mismatches
-    // due to localStorage access in useLocalStorage and useTranslation
     return (
       <div className="flex flex-col min-h-screen bg-background">
         <main className="flex-grow container mx-auto px-4 py-8 flex items-center justify-center">
-          <div className="animate-pulse text-2xl text-primary">{/* Loading... placeholder, actual content depends on language */}</div>
+          <div className="animate-pulse text-2xl text-primary">{/* Loading... placeholder */}</div>
         </main>
       </div>
     );
   }
   
-
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <Header />
       <main className="flex-grow container mx-auto px-4 py-8">
         <SpeedTestCard onTestComplete={handleTestComplete} />
         <TestHistoryTable history={testHistory} onClearHistory={handleClearHistory} />
+        <NetworkingTermsExplainer /> {/* Added component */}
       </main>
       <Footer />
     </div>
