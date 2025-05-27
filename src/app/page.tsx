@@ -6,7 +6,8 @@ import Header from './(components)/header';
 import Footer from './(components)/footer';
 import SpeedTestCard from './(components)/speed-test-card';
 import TestHistoryTable from './(components)/test-history-table';
-import NetworkingTermsExplainer from './(components)/networking-terms-explainer'; // Added import
+import NetworkingTermsExplainer from './(components)/networking-terms-explainer';
+import FrequencyBandsTable from './(components)/frequency-bands-table'; // Added import
 import type { TestResult } from '@/lib/types';
 import useLocalStorage from '@/hooks/use-local-storage';
 import { useToast } from '@/hooks/use-toast'; 
@@ -54,7 +55,8 @@ export default function HomePage() {
       <main className="flex-grow container mx-auto px-4 py-8">
         <SpeedTestCard onTestComplete={handleTestComplete} />
         <TestHistoryTable history={testHistory} onClearHistory={handleClearHistory} />
-        <NetworkingTermsExplainer /> {/* Added component */}
+        <NetworkingTermsExplainer />
+        <FrequencyBandsTable /> {/* Added component */}
       </main>
       <Footer />
     </div>

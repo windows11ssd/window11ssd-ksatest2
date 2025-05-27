@@ -108,4 +108,9 @@ export type Messages = {
   fetchingLocation: string;
   testEndpoint: string;
   networkProvider: string;
+  frequencyBandsTitle: string;
+  fddBands: string;
+  tdBands: string;
+  frequencyColumn: string;
+  bandColumn: string;
 };

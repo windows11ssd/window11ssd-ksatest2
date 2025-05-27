@@ -89,5 +89,11 @@
   "termNameIpv4": "IPv4 (Internet Protocol version 4)",
   "termExplanationIpv4": "Explanation for IPv4... The fourth version of the Internet Protocol. It is one ofthe core protocols of standards-based internetworking methods in the Internet and other packet-switched networks. Uses 32-bit addresses.",
   "termNameIpv6": "IPv6 (Internet Protocol version 6)",
-  "termExplanationIpv6": "Explanation for IPv6... The most recent version of the Internet Protocol (IP), designed as the successor to IPv4. It uses 128-bit addresses, allowing for a vastly larger address space."
+  "termExplanationIpv6": "Explanation for IPv6... The most recent version of the Internet Protocol (IP), designed as the successor to IPv4. It uses 128-bit addresses, allowing for a vastly larger address space.",
+
+  "frequencyBandsTitle": "Cellular Frequency Bands",
+  "fddBands": "FDD (Frequency Division Duplex) Bands",
+  "tdBands": "TDD (Time Division Duplex) Bands",
+  "frequencyColumn": "Frequency",
+  "bandColumn": "Band"
 }
