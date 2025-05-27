@@ -2,8 +2,8 @@
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
-  output: 'export', // Enable static HTML export
-  trailingSlash: true, // Ensures page URLs end with a '/'
+  // output: 'export', // Not needed for Vercel; Vercel handles standard Next.js builds.
+  // trailingSlash: true, // Generally not needed with Vercel's default routing.
   /* config options here */
   typescript: {
     ignoreBuildErrors: true,
@@ -12,7 +12,7 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   images: {
-    unoptimized: true, // Disable Next.js image optimization for static export
+    // unoptimized: true, // Not needed for Vercel; Vercel supports Next.js image optimization.
     remotePatterns: [
       {
         protocol: 'https',
@@ -22,11 +22,10 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  // If deploying to a GitHub Pages repository page (e.g., your-username.github.io/your-repo-name),
-  // you'll need to uncomment and set the basePath and assetPrefix.
-  // For example, if your repository is 'KsaTest':
+  // The basePath and assetPrefix are typically for specific subfolder deployments like GitHub Pages,
+  // and generally not required for standard Vercel deployments to a root domain or subdomain.
   // basePath: '/KsaTest',
-  // assetPrefix: '/KsaTest', // Set to the same as basePath if assets are served from the same path prefix
+  // assetPrefix: '/KsaTest',
 
   // Recommended for i18n routing, but we handle language via context for this app
   // i18n: {
