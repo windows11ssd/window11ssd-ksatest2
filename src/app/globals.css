@@ -17,7 +17,7 @@ body {
     --popover: 0 0% 100%;
     --popover-foreground: 231 48% 18%;
 
-    --primary: 231 48% 48%; /* Deep Blue #3F51B5 */
+    --primary: 32 100% 49%; /* Orange #fb8500 */
     --primary-foreground: 0 0% 98%; /* White/Off-white for text on primary */
 
     --secondary: 0 0% 96.1%;
@@ -36,7 +36,7 @@ body {
     --input: 0 0% 89.8%;
     --ring: 187 100% 42%; /* Cyan for focus rings */
 
-    --chart-1: 231 48% 48%;
+    --chart-1: 32 100% 49%; /* Orange #fb8500 */
     --chart-2: 187 100% 35%;
     --chart-3: 210 40% 50%;
     --chart-4: 231 30% 65%;
@@ -54,7 +54,7 @@ body {
     --popover: 0 0% 10%;
     --popover-foreground: 0 0% 90%;
 
-    --primary: 231 48% 52%; /* Slightly lighter Deep Blue for dark mode */
+    --primary: 32 100% 52%; /* Slightly lighter Orange for dark mode */
     --primary-foreground: 0 0% 98%;
 
     --secondary: 0 0% 24%;
@@ -125,4 +125,3 @@ body {
 .gauge-label {
  @apply absolute bottom-[-1.5rem] left-1/2 transform -translate-x-1/2 text-sm text-muted-foreground;
 }
-
