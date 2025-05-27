@@ -1,3 +1,4 @@
+
 "use client";
 
 import React from 'react';
@@ -5,9 +6,34 @@ import Link from 'next/link';
 import { useTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Sun, Moon, Languages, Check, Globe } from 'lucide-react';
+import { Sun, Moon, Languages, Check } from 'lucide-react';
 import { useTranslation } from '@/hooks/use-translation';
 import type { Language } from '@/lib/types';
+
+const KsaTestIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="32"
+    height="32"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className="h-8 w-8 text-primary"
+  >
+    <path d="M19.07 4.93a10 10 0 0 0-14.14 0" />
+    <path d="M12 12v-4" />
+    <path d="M12 12l3.5-2" />
+    <path d="M3 12h2" />
+    <path d="M19 12h2" />
+    <path d="M6.34 17.66l1.42-1.42" />
+    <path d="M16.24 16.24l1.42 1.42" />
+    <path d="M12 21a2 2 0 0 1-2-2h4a2 2 0 0 1-2 2z" />
+    <circle cx="12" cy="12" r="1" />
+  </svg>
+);
 
 const Header = () => {
   const { theme, setTheme } = useTheme();
@@ -26,7 +52,7 @@ const Header = () => {
     <header className="py-4 px-6 bg-card border-b border-border shadow-sm sticky top-0 z-50">
       <div className="container mx-auto flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2">
-          <Globe className="h-8 w-8 text-primary" />
+          <KsaTestIcon />
           <h1 className="text-2xl font-bold text-primary">{translate('appName')}</h1>
         </Link>
         
