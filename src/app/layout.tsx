@@ -5,13 +5,35 @@ import { ThemeProvider } from '@/components/theme-provider';
 import { LanguageProvider } from '@/hooks/use-translation';
 import { Toaster } from '@/components/ui/toaster';
 
-// geistSans itself is an object with properties like .variable
-// It's not a function to be called.
-// The variable property will be something like '--font-geist-sans'
-
 export const metadata: Metadata = {
   title: 'KsaTest',
   description: 'Test your internet speed with KsaTest.',
+  manifest: '/manifest.json',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#ffffff' }, // Assuming light theme background is white for theme-color consistency
+    { media: '(prefers-color-scheme: dark)', color: '#fb8500' }  // Primary color for dark theme
+  ],
+  appleWebApp: {
+    capable: true,
+    title: 'KsaTest',
+    statusBarStyle: 'default',
+    // You can add startup images here if needed:
+    // startupImage: [
+    //   '/apple-touch-startup-image.png',
+    // ],
+  },
+  icons: {
+    icon: '/icon-192x192.png', // General purpose icon
+    apple: '/apple-touch-icon.png', // For Apple devices
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  // Ensuring the viewport is set appropriately for PWAs
+  // Next.js handles the basic viewport meta tag well.
+  // For more specific PWA viewport needs like 'viewport-fit=cover',
+  // you might need to add a <meta name="viewport" ...> tag directly in the <head>
+  // if Next.js metadata API doesn't cover it. For now, default Next.js viewport is usually sufficient.
 };
 
 export default function RootLayout({
@@ -20,11 +42,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    // LanguageProvider now wraps the html element directly.
-    // The lang and dir attributes on <html> will be initially set here (defaults, e.g., 'ar', 'rtl')
-    // and then updated by LanguageProvider's useEffect after hydration if necessary.
     <LanguageProvider>
-      <html lang="ar" dir="rtl" suppressHydrationWarning>{/* Default to 'ar' as per useLocalStorage initial value */}
+      <html lang="ar" dir="rtl" suppressHydrationWarning>
+        {/* Next.js automatically adds <head> and populates it from metadata */}
         <body className={`${GeistSans.variable} font-sans antialiased`}>
           <ThemeProvider
             attribute="class"
