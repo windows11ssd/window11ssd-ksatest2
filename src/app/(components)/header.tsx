@@ -23,17 +23,22 @@ const KsaTestIcon = () => (
     strokeLinejoin="round"
     className="h-8 w-8 text-primary"
   >
-    <path d="M19.07 4.93a10 10 0 0 0-14.14 0" />
-    <path d="M12 12v-4" />
-    <path d="M12 12l3.5-2" />
+    {/* Simple gauge representation */}
+    <path d="M19.07 4.93a10 10 0 0 0-14.14 0" /> {/* Arc */}
+    <path d="M12 12v-4" /> {/* Needle base */}
+    {/* Needle pointing roughly to 75% */}
+    <path d="M12 12l3.5-2" /> {/* Adjusted needle to be less than full */}
+    {/* Base of the gauge */}
     <path d="M3 12h2" />
     <path d="M19 12h2" />
     <path d="M6.34 17.66l1.42-1.42" />
-    <path d="M16.24 16.24l1.42 1.42" />
-    <path d="M12 21a2 2 0 0 1-2-2h4a2 2 0 0 1-2 2z" />
+    <path d
+="M16.24 16.24l1.42 1.42" />
+    {/* Optional: Small circle at the center */}
     <circle cx="12" cy="12" r="1" />
   </svg>
 );
+
 
 const Header = () => {
   const { theme, setTheme } = useTheme();
@@ -53,7 +58,7 @@ const Header = () => {
       <div className="container mx-auto flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2">
           <KsaTestIcon />
-          <h1 className="text-2xl font-bold text-primary">{translate('appName')}</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-primary">{translate('appName')}</h1>
         </Link>
         
         <div className="flex items-center gap-3">

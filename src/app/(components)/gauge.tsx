@@ -1,3 +1,4 @@
+
 "use client";
 
 import React from 'react';
@@ -17,8 +18,8 @@ const Gauge: React.FC<GaugeProps> = ({
   maxValue,
   label,
   unit,
-  size = 180, // Increased default size
-  strokeWidth = 20, // Increased default stroke width
+  size = 180, // Default size
+  strokeWidth = 20, // Default stroke width
 }) => {
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * Math.PI; // Semi-circle
@@ -26,7 +27,6 @@ const Gauge: React.FC<GaugeProps> = ({
 
   const percentage = Math.min((value / maxValue) * 100, 100);
 
-  // Define color stops for the gradient
   const gradientId = `gaugeGradient-${label.replace(/\s+/g, '')}`;
 
   return (
@@ -62,12 +62,12 @@ const Gauge: React.FC<GaugeProps> = ({
           />
         )}
       </svg>
-      <div className="mt-[-20px] text-center relative z-10"> {/* Adjusted margin for better positioning */}
-        <div className="text-3xl font-bold text-foreground">
+      <div className="mt-[-20px] text-center relative z-10">
+        <div className="text-2xl lg:text-3xl font-bold text-foreground">
           {value.toFixed(value < 10 && value !== 0 ? 1 : 0)}
           <span className="text-sm text-muted-foreground ml-1">{unit}</span>
         </div>
-        <div className="text-base text-muted-foreground">{label}</div>
+        <div className="text-sm lg:text-base text-muted-foreground">{label}</div>
       </div>
     </div>
   );

@@ -6,7 +6,7 @@ import Gauge from './gauge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Download, Upload, Zap, Server as ServerIcon, Play, Pause, BarChartHorizontalBig, MapPin, Network } from 'lucide-react';
+import { Download, Upload, Zap, Server as ServerIcon, Play, Pause, BarChartHorizontalBig, MapPin, Network, Activity } from 'lucide-react';
 import { useTranslation } from '@/hooks/use-translation';
 import type { TestResult, FileSizeOption } from '@/lib/types';
 import { Progress } from '@/components/ui/progress';
@@ -23,14 +23,16 @@ interface ClientInfo {
   network: string;
 }
 
-// Updated file sizes, capping at 100MB for real download
 const fileSizes: FileSizeOption[] = ["1MB", "5MB", "10MB", "50MB", "100MB"];
 const BASE_DOWNLOAD_URL = 'https://speed.cloudflare.com/__down?bytes=';
+const PING_URL = 'https://speed.cloudflare.com/cdn-cgi/trace'; // Small, fast endpoint
+const PING_COUNT = 3; // Number of ping attempts to average (or take min)
+
 
 const parseFileSizeToBytes = (fileSize: FileSizeOption): number => {
   const sizePart = parseInt(fileSize.replace("MB", ""), 10);
-  if (isNaN(sizePart)) return 10000000; // Default to 10MB in bytes (10 * 1000 * 1000)
-  return sizePart * 1000 * 1000; // Approximation: 1MB = 1,000,000 Bytes
+  if (isNaN(sizePart)) return 10000000; 
+  return sizePart * 1000 * 1000; 
 };
 
 const SpeedTestCard: React.FC<SpeedTestCardProps> = ({ onTestComplete }) => {
@@ -94,7 +96,7 @@ const SpeedTestCard: React.FC<SpeedTestCardProps> = ({ onTestComplete }) => {
     setUploadSpeed(0);
     setPing(0);
     setProgress(0);
-    setCurrentTestPhase(translate('testHistory')); // Or a "Test Cancelled" message
+    setCurrentTestPhase(translate('testHistory')); 
     if (abortController) {
         abortController.abort();
     }
@@ -102,7 +104,6 @@ const SpeedTestCard: React.FC<SpeedTestCardProps> = ({ onTestComplete }) => {
   }, [translate, abortController]);
 
   useEffect(() => {
-    // Reset metrics when language changes to update labels correctly
     setDownloadSpeed(0);
     setUploadSpeed(0);
     setPing(0);
@@ -126,14 +127,29 @@ const SpeedTestCard: React.FC<SpeedTestCardProps> = ({ onTestComplete }) => {
     let finalPing = 0;
 
     try {
-      // 1. Ping (Simulated)
+      // 1. Ping Test (Real HTTP-based)
       setCurrentTestPhase(translate('ping'));
-      setProgress(10); // Initial progress for ping
-      await new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 300)); // Simulate ping delay
+      setProgress(5); 
+      let pings = [];
+      for (let i = 0; i < PING_COUNT; i++) {
+        if (controller.signal.aborted) { resetTestState(); return; }
+        const startTime = Date.now();
+        try {
+            await fetch(PING_URL, { method: 'HEAD', signal: controller.signal, cache: 'no-store' });
+            pings.push(Date.now() - startTime);
+        } catch (err) {
+            // If one ping fails, don't halt the whole test, just record a high value or ignore
+            console.warn("Ping attempt failed:", err);
+            pings.push(1000); // High value for failed ping
+        }
+        await new Promise(resolve => setTimeout(resolve, 100)); // Small delay between pings
+      }
       if (controller.signal.aborted) { resetTestState(); return; }
-      finalPing = Math.floor(Math.random() * 100) + 5;
+      
+      finalPing = pings.length > 0 ? Math.min(...pings) : 0;
       setPing(finalPing);
-      setProgress(15); // Progress after ping: 15%
+      setProgress(15); 
+
 
       // 2. Download Test (Real)
       setCurrentTestPhase(translate('downloadSpeed'));
@@ -161,9 +177,8 @@ const SpeedTestCard: React.FC<SpeedTestCardProps> = ({ onTestComplete }) => {
         
         if (elapsedTimeSeconds > 0) {
             const currentSpeedMbps = (downloadedBytes * 8) / (elapsedTimeSeconds * 1000000);
-            setDownloadSpeed(currentSpeedMbps); // Update gauge in real-time
+            setDownloadSpeed(currentSpeedMbps); 
         }
-        // Progress for download phase (from 15% to 70%, so 55% range)
         const downloadProgressPercentage = (downloadedBytes / downloadSizeInBytes) * 100;
         setProgress(15 + Math.min((downloadProgressPercentage / 100) * 55, 55));
       }
@@ -177,12 +192,11 @@ const SpeedTestCard: React.FC<SpeedTestCardProps> = ({ onTestComplete }) => {
           ? (downloadedBytes * 8) / (totalDownloadTimeSeconds * 1000000)
           : 0;
       setDownloadSpeed(parseFloat(finalDownloadSpeed.toFixed(2)));
-      setProgress(70); // Progress after download: 70%
+      setProgress(70); 
 
       // 3. Upload Test (Simulated)
       setCurrentTestPhase(translate('uploadSpeed'));
-      // Simulate upload takes some time based on file size (roughly)
-      const uploadSimulationDuration = 1000 + (downloadSizeInBytes / 1000000) * 100 + Math.random() * 500; // base + perMB + random
+      const uploadSimulationDuration = 1000 + (downloadSizeInBytes / 1000000) * 100 + Math.random() * 500; 
       const uploadIntervalTime = 150;
       const numUploadIntervals = Math.max(1, Math.round(uploadSimulationDuration / uploadIntervalTime));
       let simulatedUploadedProportion = 0;
@@ -191,14 +205,12 @@ const SpeedTestCard: React.FC<SpeedTestCardProps> = ({ onTestComplete }) => {
           if (controller.signal.aborted) { resetTestState(); return; }
           await new Promise(resolve => setTimeout(resolve, uploadIntervalTime));
           simulatedUploadedProportion = (i + 1) / numUploadIntervals;
-          // Update gauge with some random fluctuation
-          setUploadSpeed(Math.random() * (finalDownloadSpeed / 2 + 50) + 10); // upload often slower
-          // Progress for upload phase (from 70% to 100%, so 30% range)
+          setUploadSpeed(Math.random() * (finalDownloadSpeed / 2 + 50) + 10); 
           setProgress(70 + Math.min(simulatedUploadedProportion * 30, 30));
       }
-      finalUploadSpeed = parseFloat((Math.random() * (finalDownloadSpeed / 1.5 + 20) + 5).toFixed(2)); // Final simulated upload speed
+      finalUploadSpeed = parseFloat((Math.random() * (finalDownloadSpeed / 1.5 + 20) + 5).toFixed(2)); 
       setUploadSpeed(finalUploadSpeed);
-      setProgress(100); // Progress after upload: 100%
+      setProgress(100); 
 
       // Test Complete
       setCurrentTestPhase(translate('results'));
@@ -220,7 +232,7 @@ const SpeedTestCard: React.FC<SpeedTestCardProps> = ({ onTestComplete }) => {
         console.log("Test explicitly aborted.");
       } else {
         console.error("Speed test error:", error);
-        toast({ title: translate('appName'), description: `Test failed: ${error.message}`, variant: "destructive" });
+        toast({ title: translate('appName'), description: `${translate('testFailed')}: ${error.message}`, variant: "destructive" });
       }
       resetTestState();
       return;
@@ -232,7 +244,7 @@ const SpeedTestCard: React.FC<SpeedTestCardProps> = ({ onTestComplete }) => {
 
   const handleStartTest = () => {
     if (isTesting && abortController) {
-        abortController.abort(); // This will trigger the cleanup in runSpeedTest
+        abortController.abort(); 
     } else {
         runSpeedTest();
     }
@@ -246,8 +258,8 @@ const SpeedTestCard: React.FC<SpeedTestCardProps> = ({ onTestComplete }) => {
   return (
     <Card className="w-full max-w-3xl mx-auto shadow-xl">
       <CardHeader className="text-center">
-        <CardTitle className="text-3xl font-bold text-primary flex items-center justify-center gap-2">
-          <BarChartHorizontalBig className="w-8 h-8" />
+        <CardTitle className="text-2xl sm:text-3xl font-bold text-primary flex items-center justify-center gap-2">
+          <Activity className="w-7 h-7 sm:w-8 sm:h-8" /> {/* Changed icon to Activity */}
           {translate('appName')}
         </CardTitle>
         <CardDescription>{translate('tagline')}</CardDescription>
