@@ -36,7 +36,8 @@ export default function RootLayout({
 }>) {
   return (
     <LanguageProvider>
-      <html lang="ar" dir="rtl" suppressHydrationWarning> {/* Default to 'ar' as per useLocalStorage initial value */}
+      {/* Default to 'ar' as per useLocalStorage initial value; lang/dir are updated client-side by LanguageProvider */}
+      <html lang="ar" dir="rtl" suppressHydrationWarning>
         <body className={`${GeistSans.variable} font-sans antialiased`}>
           <ThemeProvider
             attribute="class"
