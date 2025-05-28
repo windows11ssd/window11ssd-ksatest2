@@ -38,6 +38,7 @@
   "testFailed": "فشل الاختبار",
   "errorTitle": "خطأ",
   "failedToFetchClientInfo": "تعذر جلب معلومات موقعك وعنوان IP الخاص بك. قد تكون بعض التفاصيل غير متوفرة.",
+  "noInternetConnection": "لا يوجد اتصال بالإنترنت. يرجى التحقق من إعدادات الشبكة الخاصة بك والمحاولة مرة أخرى.",
 
   "networkingTermsTitle": "مصطلحات هامة لعشاق الشبكات",
   "selectNetworkTermPlaceholder": "اختر مصطلحًا...",
@@ -100,3 +101,5 @@
   "frequencyColumn": "التردد",
   "bandColumn": "النطاق"
 }
+
+    

@@ -38,6 +38,7 @@
   "testFailed": "Test Failed",
   "errorTitle": "Error",
   "failedToFetchClientInfo": "Could not fetch your location and IP information. Some details may be unavailable.",
+  "noInternetConnection": "No internet connection. Please check your network settings and try again.",
 
   "networkingTermsTitle": "Important Terms for Networking Enthusiasts",
   "selectNetworkTermPlaceholder": "Select a term...",
@@ -100,3 +101,5 @@
   "frequencyColumn": "Frequency",
   "bandColumn": "Band"
 }
+
+    

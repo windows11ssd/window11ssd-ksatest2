@@ -97,9 +97,11 @@ const SpeedTestCard: React.FC<SpeedTestCardProps> = ({ onTestComplete }) => {
         setIsLoadingClientInfo(false);
       }
     };
+    // Ensure this effect runs only once on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     fetchClientInfo();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Empty dependency array ensures this runs only once on mount
+  }, []); 
 
   useEffect(() => {
     if (clientInfo && clientInfo.ip !== 'N/A' && clientInfo.city !== 'N/A' && clientInfo.country !== 'N/A') {
@@ -161,7 +163,12 @@ const SpeedTestCard: React.FC<SpeedTestCardProps> = ({ onTestComplete }) => {
             pings.push(Date.now() - startTime);
         } catch (err) {
             console.warn("Ping attempt failed:", err);
-            pings.push(1000); 
+            // Don't push a high value if aborted
+            if (!controller.signal.aborted) {
+              pings.push(1000); // Default to a high ping if individual request fails
+            } else {
+              resetTestState(); return;
+            }
         }
         await new Promise(resolve => setTimeout(resolve, 100)); 
       }
@@ -180,8 +187,8 @@ const SpeedTestCard: React.FC<SpeedTestCardProps> = ({ onTestComplete }) => {
       const downloadStartTime = Date.now();
 
       const response = await fetch(downloadUrl, { signal: controller.signal, cache: 'no-store' });
-      if (!response.ok) throw new Error(`Download failed: ${response.status} ${response.statusText}`);
-      if (!response.body) throw new Error('Response body is null for download');
+      if (!response.ok) throw new Error(`${translate('testFailed')}: Download failed ${response.status} ${response.statusText}`);
+      if (!response.body) throw new Error(`${translate('testFailed')}: No response body for download`);
       
       const reader = response.body.getReader();
       // eslint-disable-next-line no-constant-condition
@@ -255,7 +262,7 @@ const SpeedTestCard: React.FC<SpeedTestCardProps> = ({ onTestComplete }) => {
         console.log("Test explicitly aborted.");
       } else {
         console.error("Speed test error:", error);
-        toast({ title: translate('appName'), description: `${translate('testFailed')}: ${error.message}`, variant: "destructive" });
+        toast({ title: translate('errorTitle'), description: `${translate('testFailed')}: ${error.message}`, variant: "destructive" });
       }
       resetTestState();
       return;
@@ -269,6 +276,14 @@ const SpeedTestCard: React.FC<SpeedTestCardProps> = ({ onTestComplete }) => {
     if (isTesting && abortController) {
         abortController.abort(); 
     } else {
+        if (typeof navigator !== 'undefined' && !navigator.onLine) {
+            toast({
+                title: translate('errorTitle'),
+                description: translate('noInternetConnection'),
+                variant: "destructive",
+            });
+            return;
+        }
         runSpeedTest();
     }
   };
@@ -375,4 +390,6 @@ const SpeedTestCard: React.FC<SpeedTestCardProps> = ({ onTestComplete }) => {
 };
 
 export default SpeedTestCard;
+    
+
     
