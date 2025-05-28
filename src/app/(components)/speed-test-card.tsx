@@ -25,8 +25,9 @@ interface ClientInfo {
 
 const fileSizes: FileSizeOption[] = ["1MB", "5MB", "10MB", "50MB", "100MB"];
 const BASE_DOWNLOAD_URL = 'https://speed.cloudflare.com/__down?bytes=';
-const PING_URL = 'https://speed.cloudflare.com/cdn-cgi/trace'; // Small, fast endpoint
-const PING_COUNT = 3; // Number of ping attempts to average (or take min)
+const PING_URL = 'https://speed.cloudflare.com/cdn-cgi/trace'; 
+const PING_COUNT = 3;
+const IP_API_URL = 'https://ipapi.co/json/';
 
 
 const parseFileSizeToBytes = (fileSize: FileSizeOption): number => {
@@ -58,26 +59,37 @@ const SpeedTestCard: React.FC<SpeedTestCardProps> = ({ onTestComplete }) => {
       setIsLoadingClientInfo(true);
       setClientInfo(null);
       try {
-        const response = await fetch('https://ip-api.com/json'); // Changed endpoint
+        const response = await fetch(IP_API_URL);
         if (!response.ok) {
-          throw new Error('Failed to fetch IP info, status: ' + response.status);
+          // Attempt to parse error response from ipapi.co if possible
+          let errorData;
+          try {
+            errorData = await response.json();
+          } catch (e) { /* ignore parsing error */ }
+
+          if (errorData && errorData.reason) {
+            throw new Error(translate('failedToFetchClientInfo') + `: ${errorData.reason} (Status: ${response.status})`);
+          }
+          throw new Error(translate('failedToFetchClientInfo') + ` (Status: ${response.status})`);
         }
         const data = await response.json();
-        if (data.status === 'fail') {
-          throw new Error('Failed to fetch IP info: ' + (data.message || 'API returned fail status'));
+
+        if (data.error) { // ipapi.co specific error checking
+            throw new Error(translate('failedToFetchClientInfo') + (data.reason ? `: ${data.reason}` : ' - API returned error status'));
         }
+
         const fetchedClientInfo: ClientInfo = {
-          ip: data.query || 'N/A', // 'query' field for ip-api.com
+          ip: data.ip || 'N/A',
           city: data.city || 'N/A',
-          country: data.country || 'N/A', // 'country' field for ip-api.com (country name)
-          network: data.org || 'N/A', // 'org' field for ISP
+          country: data.country_name || 'N/A', // ipapi.co uses country_name
+          network: data.org || 'N/A', 
         };
         setClientInfo(fetchedClientInfo);
       } catch (error: any) {
         console.error("Error fetching client info:", error);
         toast({
             title: translate('errorTitle'),
-            description: translate('failedToFetchClientInfo') + (error.message ? `: ${error.message}` : ''),
+            description: error.message || translate('failedToFetchClientInfo'),
             variant: "destructive",
         });
         setClientInfo({ ip: 'N/A', city: 'N/A', country: 'N/A', network: 'N/A' });
@@ -87,7 +99,7 @@ const SpeedTestCard: React.FC<SpeedTestCardProps> = ({ onTestComplete }) => {
     };
     fetchClientInfo();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [toast, translate]);
+  }, []); // Empty dependency array ensures this runs only once on mount
 
   useEffect(() => {
     if (clientInfo && clientInfo.ip !== 'N/A' && clientInfo.city !== 'N/A' && clientInfo.country !== 'N/A') {
@@ -363,5 +375,4 @@ const SpeedTestCard: React.FC<SpeedTestCardProps> = ({ onTestComplete }) => {
 };
 
 export default SpeedTestCard;
-
     
