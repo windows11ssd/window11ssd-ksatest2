@@ -17,10 +17,6 @@ export const metadata: Metadata = {
     capable: true,
     title: 'KsaTest',
     statusBarStyle: 'default',
-    // You can add startup images here if needed:
-    // startupImage: [
-    //   '/apple-touch-startup-image.png',
-    // ],
   },
   icons: {
     icon: '/icon-192x192.png', // General purpose icon
@@ -29,11 +25,8 @@ export const metadata: Metadata = {
   formatDetection: {
     telephone: false,
   },
-  // Ensuring the viewport is set appropriately for PWAs
-  // Next.js handles the basic viewport meta tag well.
-  // For more specific PWA viewport needs like 'viewport-fit=cover',
-  // you might need to add a <meta name="viewport" ...> tag directly in the <head>
-  // if Next.js metadata API doesn't cover it. For now, default Next.js viewport is usually sufficient.
+  // Explicitly set viewport for proper scaling
+  viewport: 'width=device-width, initial-scale=1.0',
 };
 
 export default function RootLayout({
@@ -43,8 +36,7 @@ export default function RootLayout({
 }>) {
   return (
     <LanguageProvider>
-      <html lang="ar" dir="rtl" suppressHydrationWarning>
-        {/* Next.js automatically adds <head> and populates it from metadata */}
+      <html lang="ar" dir="rtl" suppressHydrationWarning> {/* Default to 'ar' as per useLocalStorage initial value */}
         <body className={`${GeistSans.variable} font-sans antialiased`}>
           <ThemeProvider
             attribute="class"
