@@ -19,7 +19,8 @@ export const metadata: Metadata = {
     statusBarStyle: 'default',
   },
   icons: {
-    icon: '/icon-192x192.png', // General purpose icon
+    // The general 'icon' is removed to allow Next.js to automatically
+    // use favicon.ico or icon.png from the 'src/app/' directory.
     apple: '/apple-touch-icon.png', // For Apple devices
   },
   formatDetection: {
@@ -35,8 +36,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
+    // Default to 'ar' as per useLocalStorage initial value; lang/dir are updated client-side by LanguageProvider
+    // The comment below was moved here to prevent hydration errors.
+    /* Default to 'ar' as per useLocalStorage initial value */
     <LanguageProvider>
-      {/* Default to 'ar' as per useLocalStorage initial value; lang/dir are updated client-side by LanguageProvider */}
       <html lang="ar" dir="rtl" suppressHydrationWarning>
         <body className={`${GeistSans.variable} font-sans antialiased`}>
           <ThemeProvider
