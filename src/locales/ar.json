@@ -1,7 +1,7 @@
 
 {
   "appName": "كي إس إيه تست",
-  "tagline": "قس سرعة الإنترنت لديك بدقة",
+  "tagline": "بواسطة أبو ياسر",
   "downloadSpeed": "سرعة التحميل",
   "uploadSpeed": "سرعة الرفع",
   "ping": "البنق",
@@ -100,5 +100,3 @@
   "frequencyColumn": "التردد",
   "bandColumn": "النطاق"
 }
-
-    

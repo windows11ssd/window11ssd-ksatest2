@@ -1,7 +1,7 @@
 
 {
   "appName": "KsaTest",
-  "tagline": "Measure Your Internet Speed Accurately",
+  "tagline": "By Abo Yassir",
   "downloadSpeed": "Download",
   "uploadSpeed": "Upload",
   "ping": "Ping",
@@ -100,5 +100,3 @@
   "frequencyColumn": "Frequency",
   "bandColumn": "Band"
 }
-
-    
