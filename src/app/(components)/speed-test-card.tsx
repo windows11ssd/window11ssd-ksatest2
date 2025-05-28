@@ -58,23 +58,26 @@ const SpeedTestCard: React.FC<SpeedTestCardProps> = ({ onTestComplete }) => {
       setIsLoadingClientInfo(true);
       setClientInfo(null);
       try {
-        const response = await fetch('https://ipapi.co/json/');
+        const response = await fetch('https://ip-api.com/json'); // Changed endpoint
         if (!response.ok) {
           throw new Error('Failed to fetch IP info, status: ' + response.status);
         }
         const data = await response.json();
+        if (data.status === 'fail') {
+          throw new Error('Failed to fetch IP info: ' + (data.message || 'API returned fail status'));
+        }
         const fetchedClientInfo: ClientInfo = {
-          ip: data.ip || 'N/A',
+          ip: data.query || 'N/A', // 'query' field for ip-api.com
           city: data.city || 'N/A',
-          country: data.country_name || 'N/A',
-          network: data.org || 'N/A',
+          country: data.country || 'N/A', // 'country' field for ip-api.com (country name)
+          network: data.org || 'N/A', // 'org' field for ISP
         };
         setClientInfo(fetchedClientInfo);
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error fetching client info:", error);
         toast({
             title: translate('errorTitle'),
-            description: translate('failedToFetchClientInfo'),
+            description: translate('failedToFetchClientInfo') + (error.message ? `: ${error.message}` : ''),
             variant: "destructive",
         });
         setClientInfo({ ip: 'N/A', city: 'N/A', country: 'N/A', network: 'N/A' });
@@ -84,7 +87,7 @@ const SpeedTestCard: React.FC<SpeedTestCardProps> = ({ onTestComplete }) => {
     };
     fetchClientInfo();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [toast, translate]); // Added toast and translate to dependency array
+  }, [toast, translate]);
 
   useEffect(() => {
     if (clientInfo && clientInfo.ip !== 'N/A' && clientInfo.city !== 'N/A' && clientInfo.country !== 'N/A') {
@@ -145,11 +148,10 @@ const SpeedTestCard: React.FC<SpeedTestCardProps> = ({ onTestComplete }) => {
             await fetch(PING_URL, { method: 'HEAD', signal: controller.signal, cache: 'no-store' });
             pings.push(Date.now() - startTime);
         } catch (err) {
-            // If one ping fails, don't halt the whole test, just record a high value or ignore
             console.warn("Ping attempt failed:", err);
-            pings.push(1000); // High value for failed ping
+            pings.push(1000); 
         }
-        await new Promise(resolve => setTimeout(resolve, 100)); // Small delay between pings
+        await new Promise(resolve => setTimeout(resolve, 100)); 
       }
       if (controller.signal.aborted) { resetTestState(); return; }
       
@@ -212,11 +214,13 @@ const SpeedTestCard: React.FC<SpeedTestCardProps> = ({ onTestComplete }) => {
           if (controller.signal.aborted) { resetTestState(); return; }
           await new Promise(resolve => setTimeout(resolve, uploadIntervalTime));
           simulatedUploadedProportion = (i + 1) / numUploadIntervals;
-          setUploadSpeed(Math.random() * (finalDownloadSpeed / 2 + 50) + 10); 
+          // Simulate upload speed based on a fraction of download speed, plus some randomness
+          const simulatedSpeed = Math.random() * (finalDownloadSpeed / 2 + 50) + 10;
+          setUploadSpeed(Math.max(0.1, simulatedSpeed)); // Ensure it's not zero if dl speed was zero
           setProgress(70 + Math.min(simulatedUploadedProportion * 30, 30));
       }
       finalUploadSpeed = parseFloat((Math.random() * (finalDownloadSpeed / 1.5 + 20) + 5).toFixed(2)); 
-      setUploadSpeed(finalUploadSpeed);
+      setUploadSpeed(Math.max(0.1, finalUploadSpeed));
       setProgress(100); 
 
       // Test Complete
@@ -225,7 +229,7 @@ const SpeedTestCard: React.FC<SpeedTestCardProps> = ({ onTestComplete }) => {
         id: new Date().toISOString() + Math.random().toString(36).substring(2, 15),
         date: new Date().toISOString(),
         download: parseFloat(finalDownloadSpeed.toFixed(2)),
-        upload: parseFloat(finalUploadSpeed.toFixed(2)),
+        upload: parseFloat(uploadSpeed.toFixed(2)), // Use the last set upload speed for history
         ping: finalPing,
         fileSize: selectedFileSize,
         serverName: serverName || translate('defaultServerName'),
