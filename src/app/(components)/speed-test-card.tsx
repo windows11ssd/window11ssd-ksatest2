@@ -6,7 +6,7 @@ import Gauge from './gauge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Download, Upload, Zap, Server as ServerIcon, Play, Pause, BarChartHorizontalBig, MapPin, Network, Activity } from 'lucide-react';
+import { Download, Upload, Zap, Server as ServerIcon, Play, Pause, MapPin, Network, Activity } from 'lucide-react';
 import { useTranslation } from '@/hooks/use-translation';
 import type { TestResult, FileSizeOption } from '@/lib/types';
 import { Progress } from '@/components/ui/progress';
@@ -60,7 +60,7 @@ const SpeedTestCard: React.FC<SpeedTestCardProps> = ({ onTestComplete }) => {
       try {
         const response = await fetch('https://ipapi.co/json/');
         if (!response.ok) {
-          throw new Error('Failed to fetch IP info');
+          throw new Error('Failed to fetch IP info, status: ' + response.status);
         }
         const data = await response.json();
         const fetchedClientInfo: ClientInfo = {
@@ -72,13 +72,19 @@ const SpeedTestCard: React.FC<SpeedTestCardProps> = ({ onTestComplete }) => {
         setClientInfo(fetchedClientInfo);
       } catch (error) {
         console.error("Error fetching client info:", error);
+        toast({
+            title: translate('errorTitle'),
+            description: translate('failedToFetchClientInfo'),
+            variant: "destructive",
+        });
         setClientInfo({ ip: 'N/A', city: 'N/A', country: 'N/A', network: 'N/A' });
       } finally {
         setIsLoadingClientInfo(false);
       }
     };
     fetchClientInfo();
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [toast, translate]); // Added toast and translate to dependency array
 
   useEffect(() => {
     if (clientInfo && clientInfo.ip !== 'N/A' && clientInfo.city !== 'N/A' && clientInfo.country !== 'N/A') {
@@ -104,6 +110,7 @@ const SpeedTestCard: React.FC<SpeedTestCardProps> = ({ onTestComplete }) => {
   }, [translate, abortController]);
 
   useEffect(() => {
+    // Reset speeds and progress if language changes to avoid showing old numbers with new labels
     setDownloadSpeed(0);
     setUploadSpeed(0);
     setPing(0);
@@ -259,7 +266,7 @@ const SpeedTestCard: React.FC<SpeedTestCardProps> = ({ onTestComplete }) => {
     <Card className="w-full max-w-3xl mx-auto shadow-xl">
       <CardHeader className="text-center">
         <CardTitle className="text-2xl sm:text-3xl font-bold text-primary flex items-center justify-center gap-2">
-          <Activity className="w-7 h-7 sm:w-8 sm:h-8" /> {/* Changed icon to Activity */}
+          <Activity className="w-7 h-7 sm:w-8 sm:h-8" />
           {translate('appName')}
         </CardTitle>
         <CardDescription>{translate('tagline')}</CardDescription>
@@ -352,3 +359,5 @@ const SpeedTestCard: React.FC<SpeedTestCardProps> = ({ onTestComplete }) => {
 };
 
 export default SpeedTestCard;
+
+    

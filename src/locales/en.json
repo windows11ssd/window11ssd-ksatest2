@@ -35,6 +35,9 @@
   "fetchingLocation": "Fetching info...",
   "testEndpoint": "Test Endpoint",
   "networkProvider": "Network Provider",
+  "testFailed": "Test Failed",
+  "errorTitle": "Error",
+  "failedToFetchClientInfo": "Could not fetch your location and IP information. Some details may be unavailable.",
 
   "networkingTermsTitle": "Important Terms for Networking Enthusiasts",
   "selectNetworkTermPlaceholder": "Select a term...",
@@ -97,3 +100,5 @@
   "frequencyColumn": "Frequency",
   "bandColumn": "Band"
 }
+
+    

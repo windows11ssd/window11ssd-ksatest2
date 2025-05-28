@@ -35,6 +35,9 @@
   "fetchingLocation": "جاري جلب المعلومات...",
   "testEndpoint": "نقطة اختبار الاتصال",
   "networkProvider": "مزود الشبكة",
+  "testFailed": "فشل الاختبار",
+  "errorTitle": "خطأ",
+  "failedToFetchClientInfo": "تعذر جلب معلومات موقعك وعنوان IP الخاص بك. قد تكون بعض التفاصيل غير متوفرة.",
 
   "networkingTermsTitle": "مصطلحات هامة لعشاق الشبكات",
   "selectNetworkTermPlaceholder": "اختر مصطلحًا...",
@@ -97,3 +100,5 @@
   "frequencyColumn": "التردد",
   "bandColumn": "النطاق"
 }
+
+    

@@ -87,7 +87,7 @@ export type Messages = {
   mbps: string;
   ms: string;
   date: string;
-  fileSize: string;
+  fileSize: string; // This one was duplicated, kept one.
   language: string;
   english: string;
   arabic: string;
@@ -113,4 +113,9 @@ export type Messages = {
   tdBands: string;
   frequencyColumn: string;
   bandColumn: string;
+  testFailed: string;
+  errorTitle: string;
+  failedToFetchClientInfo: string;
 };
+
+    
